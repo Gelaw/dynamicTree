@@ -216,15 +216,18 @@ tree = {
     if node.nodeType == "active" then
       for n, possibleNode in pairs(nodeLib) do
         if possibleNode.nodeType == "mod" then
-          local match = true
+          local valid = true
           for t, tag in pairs(possibleNode.tags) do
+            local match = false
             for t2, tag2 in pairs(node.tags) do
-              if tag ~= tag2 then
-                match = false
+              if tag == tag2 then
+                match = true
+                break
               end
             end
+            if not match then valid = false end
           end
-          if match then newFantomNode(possibleNode, nodeID) end
+          if valid then newFantomNode(possibleNode, nodeID) end
         end
       end
     end

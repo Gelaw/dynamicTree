@@ -6,14 +6,11 @@ require "data"
 
 function projectSetup()
   font = love.graphics.getFont()
-
   width  = love.graphics.getWidth()
   height = love.graphics.getHeight()
   love.graphics.setBackgroundColor(.1, .1, .1)
   newNode({nodeType = "root", effect = {lifeMax = 100}})
   table.insert(entities, tree)
-
-
 end
 
 
