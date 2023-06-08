@@ -56,6 +56,45 @@ function newNode(params)
   return node
 end
 
+function newFantomNode(params, parentID)
+  local node = applyParams({
+    fantom=true,
+    parent = parentID, x= math.random(1000)-500, y =math.random(700)-350, size = 30,
+    tooltip = {w = 300, h = 300, backgroundColor = {.3, .3, .3}, textColor = {1, 1, 1}},
+    drawTooltip = function (self)
+      love.graphics.setColor(self.tooltip.backgroundColor)
+      love.graphics.rectangle("fill", 0, 0, self.tooltip.w, self.tooltip.h)
+      love.graphics.setColor(self.tooltip.textColor)
+      love.graphics.translate(tooltipDX, tooltipDY)
+      for p, prop in pairs(self) do
+        if p ~= "drawTooltip" and p ~= "tooltip" then
+          if type(prop) == "string" then
+            love.graphics.print(p..": "..prop)
+            love.graphics.translate(0, tooltipDY)
+          end
+          if type(prop) == "function" then
+            love.graphics.print(p.."()")
+            love.graphics.translate(0, tooltipDY)
+          end
+          if type(prop) == "table" then
+            love.graphics.print(p.."{")
+            love.graphics.translate(0, tooltipDY)
+            love.graphics.translate(tooltipDX, 0)
+            for p2, prop2 in pairs(prop) do
+              love.graphics.print(p2.."= "..prop2)
+              love.graphics.translate(0, tooltipDY)
+            end
+            love.graphics.translate(-tooltipDX, 0)
+            love.graphics.print("}")
+            love.graphics.translate(0, tooltipDY)
+          end
+        end
+      end
+    end
+  }, params)
+  table.insert(tree.possibleNewNodes, node)
+end
+
 tree = {
   x = 0, y = 0,
   nodes = {},
@@ -129,7 +168,7 @@ tree = {
     for n, node in pairs(self.possibleNewNodes) do
       love.graphics.push()
       love.graphics.setColor(.6, .6, .6, .2)
-      love.graphics.line(node.x, node.y, tree.nodes[node.parent].x, tree.nodes[node.parent].y)
+      love.graphics.line(node.x, node.y, self.nodes[node.parent].x, self.nodes[node.parent].y)
       love.graphics.translate(node.x, node.y)
 
       if node == grab then love.graphics.setColor(.8, .8, .8, .2) end
@@ -159,41 +198,7 @@ tree = {
     if node.nodeType == "root" then
       for n, possibleNode in pairs(nodeLib) do
         if possibleNode.nodeType == "passive" then
-          table.insert(self.possibleNewNodes, applyParams({
-            fantom=true,
-            parent = nodeID, x= math.random(1000)-500, y =math.random(700)-350, size = 30,
-            tooltip = {w = 300, h = 300, backgroundColor = {.3, .3, .3}, textColor = {1, 1, 1}},
-            drawTooltip = function (self)
-              love.graphics.setColor(self.tooltip.backgroundColor)
-              love.graphics.rectangle("fill", 0, 0, self.tooltip.w, self.tooltip.h)
-              love.graphics.setColor(self.tooltip.textColor)
-              love.graphics.translate(tooltipDX, tooltipDY)
-              for p, prop in pairs(self) do
-                if p ~= "drawTooltip" and p ~= "tooltip" then
-                  if type(prop) == "string" then
-                    love.graphics.print(p..": "..prop)
-                    love.graphics.translate(0, tooltipDY)
-                  end
-                  if type(prop) == "function" then
-                    love.graphics.print(p.."()")
-                    love.graphics.translate(0, tooltipDY)
-                  end
-                  if type(prop) == "table" then
-                    love.graphics.print(p.."{")
-                    love.graphics.translate(0, tooltipDY)
-                    love.graphics.translate(tooltipDX, 0)
-                    for p2, prop2 in pairs(prop) do
-                      love.graphics.print(p2.."= "..prop2)
-                      love.graphics.translate(0, tooltipDY)
-                    end
-                    love.graphics.translate(-tooltipDX, 0)
-                    love.graphics.print("}")
-                    love.graphics.translate(0, tooltipDY)
-                  end
-                end
-              end
-            end
-          }, possibleNode))
+          newFantomNode(possibleNode, nodeID)
         end
       end
     end
@@ -202,42 +207,7 @@ tree = {
         if possibleNode.nodeType ~= "passive" then
           for t, tag in pairs(possibleNode.tags) do
             if tag == node.name then
-              table.insert(self.possibleNewNodes, applyParams({
-                fantom=true,
-                parent = nodeID, x= math.random(1000)-500, y =math.random(700)-350, size = 30,
-                tooltip = {w = 300, h = 300, backgroundColor = {.3, .3, .3}, textColor = {1, 1, 1}},
-                drawTooltip = function (self)
-                  love.graphics.setColor(self.tooltip.backgroundColor)
-                  love.graphics.rectangle("fill", 0, 0, self.tooltip.w, self.tooltip.h)
-                  love.graphics.setColor(self.tooltip.textColor)
-                  love.graphics.translate(tooltipDX, tooltipDY)
-                  for p, prop in pairs(self) do
-                    if p ~= "drawTooltip" and p ~= "tooltip" then
-                      if type(prop) == "string" then
-                        love.graphics.print(p..": "..prop)
-                        love.graphics.translate(0, tooltipDY)
-                      end
-                      if type(prop) == "function" then
-                        love.graphics.print(p.."()")
-                        love.graphics.translate(0, tooltipDY)
-                      end
-                      if type(prop) == "table" then
-                        love.graphics.print(p.."{")
-                        love.graphics.translate(0, tooltipDY)
-                        love.graphics.translate(tooltipDX, 0)
-                        for p2, prop2 in pairs(prop) do
-                          love.graphics.print(p2.."= "..prop2)
-                          love.graphics.translate(0, tooltipDY)
-                        end
-                        love.graphics.translate(-tooltipDX, 0)
-                        love.graphics.print("}")
-                        love.graphics.translate(0, tooltipDY)
-                      end
-                    end
-                  end
-                end
-              }, possibleNode))
-              break
+              newFantomNode(possibleNode, nodeID)
             end
           end
         end
@@ -249,46 +219,12 @@ tree = {
           local match = true
           for t, tag in pairs(possibleNode.tags) do
             for t2, tag2 in pairs(node.tags) do
-              if tag == tag2 then
-                table.insert(self.possibleNewNodes, applyParams({
-                  fantom=true,
-                  parent = nodeID, x= math.random(1000)-500, y =math.random(700)-350, size = 30,
-                  tooltip = {w = 300, h = 300, backgroundColor = {.3, .3, .3}, textColor = {1, 1, 1}},
-                  drawTooltip = function (self)
-                    love.graphics.setColor(self.tooltip.backgroundColor)
-                    love.graphics.rectangle("fill", 0, 0, self.tooltip.w, self.tooltip.h)
-                    love.graphics.setColor(self.tooltip.textColor)
-                    love.graphics.translate(tooltipDX, tooltipDY)
-                    for p, prop in pairs(self) do
-                      if p ~= "drawTooltip" and p ~= "tooltip" then
-                        if type(prop) == "string" then
-                          love.graphics.print(p..": "..prop)
-                          love.graphics.translate(0, tooltipDY)
-                        end
-                        if type(prop) == "function" then
-                          love.graphics.print(p.."()")
-                          love.graphics.translate(0, tooltipDY)
-                        end
-                        if type(prop) == "table" then
-                          love.graphics.print(p.."{")
-                          love.graphics.translate(0, tooltipDY)
-                          love.graphics.translate(tooltipDX, 0)
-                          for p2, prop2 in pairs(prop) do
-                            love.graphics.print(p2.."= "..prop2)
-                            love.graphics.translate(0, tooltipDY)
-                          end
-                          love.graphics.translate(-tooltipDX, 0)
-                          love.graphics.print("}")
-                          love.graphics.translate(0, tooltipDY)
-                        end
-                      end
-                    end
-                  end
-                }, possibleNode))
-                break
+              if tag ~= tag2 then
+                match = false
               end
             end
           end
+          if match then newFantomNode(possibleNode, nodeID) end
         end
       end
     end
