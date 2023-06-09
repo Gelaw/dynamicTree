@@ -100,11 +100,11 @@ end
 
 --nodePhysicsProperties
 npp = {
-  repulsionRangeToSizeRatio = 3,
+  repulsionRangeToSizeRatio = 2,
   repulsionStrenght = 1,
-  linkLenghtToSizeRatio = 2,
+  linkLenghtToSizeRatio = 3,
   linkStrenght = 1,
-  speedDampening = .999
+  speedDampening = .9999
 }
 
 tree = {
@@ -118,7 +118,7 @@ tree = {
   end,
   update = function (self, dt)
     for n1, node1 in pairs(self.nodes) do
-      node.f = {x=0, y=0}
+      node1.f = {x=0, y=0}
       for n2, node2 in pairs(self.nodes) do
         if n1 ~= n2 then
           local dist = math.dist(node1.x, node1.y, node2.x, node2.y)
@@ -142,7 +142,8 @@ tree = {
     end
     for n, node in pairs(self.nodes) do
       if grab ~= node and n ~= 1 then
-        node.s.x, node.s.y = node.s.x * npp.speedDampening + dt * node.f.x, node.s.y* npp.speedDampening + dt * node.f.y
+        node.s.x = node.s.x * npp.speedDampening + dt * node.f.x
+        node.s.y = node.s.y * npp.speedDampening + dt * node.f.y
         -- if node.x < 0 then node.s.x = -node.s.x end
         -- if node.y < 0 then node.s.y = -node.s.y end
         -- if node.x > width then node.s.x = -node.s.x end
