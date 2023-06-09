@@ -4,6 +4,7 @@ nodeLib = {
   --passives
   {nodeType = "passive", name = "mana", tag = {"mana", "ressource"}, effects = {manaMax = 100, manaPer = 1}},
   {nodeType = "passive", name = "stamina", tag = {"mana", "ressource"}, effects = {staminaMax = 20, staminaPer = 1}},
+  {nodeType = "passive", name = "energy shield", tag = {"energy shield", "ressource"}, effects = {ESMax = 20}},
 
   --actives
   {nodeType = "active", name= "fireball", tags= {"mana"}, tags ={"fire", "mana", "damage", "hit"}, effects= {mana= -10, damage=10}},

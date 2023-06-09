@@ -25,7 +25,7 @@ function love.mousepressed(x, y, button, isTouch)
 end
 
 function love.mousereleased(x, y, button, isTouch)
-    x, y = x - .5*width, y - .5 * height
+  x, y = x - .5*width, y - .5 * height
   if grabID and grabID == tree:getNodeAt(x, y) then
     if grab.fantom then
       table.remove(tree.possibleNewNodes, grabID)

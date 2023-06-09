@@ -1,10 +1,12 @@
 
 local maxLinkLenght = function(n1, n2)
-  return (n1.size + n2.size)*2
+  return (n1.size + n2.size)*npp.linkLenghtToSizeRatio
 end
 
 tooltipDX = 15
 tooltipDY = 15
+
+--add a node to the tree
 function newNode(params)
   params = params or {}
   node = applyParams({
@@ -16,7 +18,7 @@ function newNode(params)
       love.graphics.setColor(self.tooltip.textColor)
       love.graphics.translate(tooltipDX, tooltipDY)
       for p, prop in pairs(self) do
-        if p ~= "drawTooltip" and p ~= "tooltip" then
+        if p ~= "drawTooltip" and p ~= "tooltip" and p~="s"  then
           if type(prop) == "string" then
             love.graphics.print(p..": "..prop)
             love.graphics.translate(0, tooltipDY)
@@ -56,6 +58,7 @@ function newNode(params)
   return node
 end
 
+--add a fantom node (a node possible)
 function newFantomNode(params, parentID)
   local node = applyParams({
     fantom=true,
@@ -95,6 +98,15 @@ function newFantomNode(params, parentID)
   table.insert(tree.possibleNewNodes, node)
 end
 
+--nodePhysicsProperties
+npp = {
+  repulsionRangeToSizeRatio = 3,
+  repulsionStrenght = 1,
+  linkLenghtToSizeRatio = 2,
+  linkStrenght = 1,
+  speedDampening = .999
+}
+
 tree = {
   x = 0, y = 0,
   nodes = {},
@@ -106,21 +118,22 @@ tree = {
   end,
   update = function (self, dt)
     for n1, node1 in pairs(self.nodes) do
+      node.f = {x=0, y=0}
       for n2, node2 in pairs(self.nodes) do
         if n1 ~= n2 then
           local dist = math.dist(node1.x, node1.y, node2.x, node2.y)
           local dx = node2.x - node1.x
           local dy = node2.y - node1.y
-          if dist < (node1.size + node2.size)*3 then
-            node1.f.x = node1.f.x - dx
-            node1.f.y = node1.f.y - dy
+          if dist < (node1.size + node2.size)* npp.repulsionRangeToSizeRatio then
+            node1.f.x = node1.f.x - npp.repulsionStrenght*dx
+            node1.f.y = node1.f.y - npp.repulsionStrenght*dy
           end
           if (node1.parent == n2 or node2.parent == n1) then
             local maxDist = maxLinkLenght(node1, node2)
             if dist > maxDist then
               if n1 ~= 1 then
-                node1.f.x = node1.f.x + (dist - maxDist)*dx
-                node1.f.y = node1.f.y + (dist - maxDist)*dy
+                node1.f.x = node1.f.x + npp.linkStrenght*(dist - maxDist)*dx
+                node1.f.y = node1.f.y + npp.linkStrenght*(dist - maxDist)*dy
               end
             end
           end
@@ -129,7 +142,7 @@ tree = {
     end
     for n, node in pairs(self.nodes) do
       if grab ~= node and n ~= 1 then
-        node.s.x, node.s.y = node.s.x * .999 + dt*.1 * node.f.x, node.s.y* .999 + dt*.1 * node.f.y
+        node.s.x, node.s.y = node.s.x * npp.speedDampening + dt * node.f.x, node.s.y* npp.speedDampening + dt * node.f.y
         -- if node.x < 0 then node.s.x = -node.s.x end
         -- if node.y < 0 then node.s.y = -node.s.y end
         -- if node.x > width then node.s.x = -node.s.x end
@@ -137,7 +150,6 @@ tree = {
         node.x = node.x + dt * node.s.x
         node.y = node.y + dt * node.s.y
       end
-      node.f = {x=0, y=0}
     end
   end,
   draw = function (self)
